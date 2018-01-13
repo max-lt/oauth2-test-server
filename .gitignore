@@ -1,0 +1,7 @@
+node_modules/
+.idea
+debug*.txt
+*debug.log
+*.zip
+*.tar.*
+package-lock.json

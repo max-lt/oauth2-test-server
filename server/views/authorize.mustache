@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <script type="text/javascript" id="" src="/authorize.js"></script>
+</head>
+<body>
+
+<h1>OAuth server app</h1>
+
+<h2>Authorize</h2>
+
+<div>
+
+  <p>You are: {{user.login}}</p>
+
+  <p>Authorize app "{{app_name}}" ?</p>
+
+  <form method="post" target="">
+    <button type="submit" name="user_allows" value="true" >Yes</button>
+    <button type="submit" name="user_allows" value="false" >No</button>
+  </form>
+
+</div>
+
+</body>
+</html>
