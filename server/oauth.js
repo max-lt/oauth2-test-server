@@ -44,7 +44,7 @@ router.all('/oauth/access_token', (req, res, next) => {
   oauth
     .token(request, response)
     .then((token) => {
-      // Todo: remove unnecessary values in response
+
       console.log('server:', 'token:', {token});
 
       // https://tools.ietf.org/html/rfc6749.html#section-5.1
@@ -64,20 +64,41 @@ router.all('/oauth/access_token', (req, res, next) => {
 });
 
 // Get authorization.
-router.get('/oauth/authorize', function (req, res) {
+router.get('/oauth/authorize', (req, res, next) => {
+  const {response_type, client_id, redirect_uri, scope, state} = req.query;
 
-  console.log('server:', '/oauth/authorize', JSON.stringify(req.user));
+  const client = store.client.get(client_id);
+
+  if (!client)
+    return res.status(404).send('Client not found');
+
+  console.log('server:', 'user:', JSON.stringify(req.user));
 
   // Redirect anonymous users to login page.
-  if (!req.user) {
+  if (!req.user)
     return res.redirect(`/login?redirect=${req.path}&${qs.encode(req.query)}`);
-  }
 
   const user = req.user;
-  const {client_id, redirect_uri} = req.query;
-  const app_name = 'app-' + client_id; // todo
 
-  return res.render('authorize', {user, app_name, client_id, redirect_uri});
+  // If user already approved client app. todo: check for scopes too
+  if (user.authorizedClients.find(({id}) => id === client_id)) {
+    const request = new Request(req);
+    const response = new Response(res);
+
+    return oauth.authorize(request, response, {authenticateHandler, allowEmptyState: true})
+      .then((code) => {
+        console.log('server:', `user:${user.id} already approved client:${client_id}`);
+        res.redirect(`${code.redirectUri}/?code=${code.authorizationCode}`) // todo add state
+      })
+      .catch((err) => {
+        console.log('server:', err);
+        res.status(err.code || 500).json(err)
+      })
+  }
+
+  const app_name = client.name; // todo
+
+  return res.render('authorize', {user, app_name, client_id, redirect_uri, scope: scope.split(/[ ,]/)});
 });
 
 router.post('/oauth/authorize', (req, res) => {
@@ -92,17 +113,29 @@ router.post('/oauth/authorize', (req, res) => {
   const response = new Response(res);
 
   return oauth.authorize(request, response, {authenticateHandler, allowEmptyState: true})
-    .then((code) => { // => {"authorizationCode":"...","expiresAt":"...","redirectUri":"...","scope":"...","client":{},"user":{"id":"..."}}
+    .then((code) => { // => {"authorizationCode":"...","expiresAt":"...","redirectUri":"...","scope":"...","client":{"id":"..."},"user":{"id":"..."}}
+
       console.info('server:', 'code:', code);
+
+      // saving client to user's approved clients
+      const user = store.user.get(code.user.id);
+
+      if (!user)
+        throw new Error('Could not find referenced user');
+
+      user.authorizedClients.push({id: code.client.id, scope: code.scope});
+
+      store.user.set(code.user.id, user);
+      // end
+
       res.redirect(`${code.redirectUri}/?code=${code.authorizationCode}`) // todo add state
-      // res.json(code)
     })
     .catch((err) => {
-      console.log('server:', err, err instanceof AccessDeniedError);
-
       if (err instanceof AccessDeniedError) {
         return res.redirect(`${redirect_uri}/?error=access_denied`) // todo add state
       }
+
+      console.log('server:', err);
 
       res.status(err.code || 500).json(err)
     })

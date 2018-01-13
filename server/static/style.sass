@@ -9,6 +9,12 @@ $green-300: #81C784
 $green-500: #4CAF50
 $green-700: #388E3C
 
+$grey-300: #E0E0E0
+
+$amber-100: #FFECB3
+$amber-200: #FFE082
+$amber-300: #FFD54F
+
 $blue-grey-500: #607D8B
 $blue-grey-700: #455A64
 $blue-grey-800: #37474F
@@ -25,7 +31,7 @@ html, body
   margin: 0
   padding: 0
 
-.button-ok
+.button-success
   background-color: $green-500
   border-color: $green-500
   &:focus,
@@ -33,7 +39,7 @@ html, body
     background-color: $green-700
     border-color: $green-700
 
-.button-ko
+.button-danger
   background-color: $red-500
   border-color: $red-500
   &:focus,
@@ -41,9 +47,15 @@ html, body
     background-color: $red-700
     border-color: $red-700
 
+.button-small
+  font-size: .8rem
+  height: 1.8rem
+  line-height: 1.6rem
+  padding: 0 1.5rem
+
 body
-  h1, h2
-    padding: 10px
+  h1, h2, h3
+    padding: 1rem
     margin: 0
 
   h1
@@ -60,3 +72,41 @@ body
   display: table
   margin: 0 auto
 
+.box
+  background: #fff
+  border: 1px solid $grey-300
+  border-radius: 3px
+  .box-body, .box-head
+    h3
+      padding: 0
+    padding: 2.4rem 2.4rem 0
+  .box-head
+    text-align: center
+    &:after
+      content: ""
+      display: block
+      border-bottom: 1px solid $grey-300
+      width: 100%
+      padding-top: 2rem
+
+table
+  caption
+    border-bottom: 0.1rem solid $color-quinary
+    padding: 1.2rem 0
+    text-align: left
+
+.tag
+  @extend .button
+  background-color: $amber-200
+  border-color: $amber-200
+  cursor: default
+  color: $color-secondary
+  font-size: .8rem
+  height: 1.8rem
+  line-height: 1.6rem
+  padding: 0 .5rem
+  &:focus,
+  &:hover
+    background-color: $amber-200
+    border-color: $amber-200
+    color: $color-secondary

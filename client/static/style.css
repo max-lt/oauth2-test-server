@@ -593,8 +593,8 @@ html, body {
   padding: 0;
 }
 
-body h1, body h2 {
-  padding: 10px;
+body h1, body h2, body h3 {
+  padding: 1rem;
   margin: 0;
 }
 

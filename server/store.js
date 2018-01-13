@@ -30,6 +30,7 @@ const store = module.exports = {
 
 store.client.set('abc', {
   id: 'abc',
+  name: 'test app',
   secret: '123',
   redirectUris: ['http://localhost:8080/auth/test/callback'], // optional
   grants: ['refresh_token', 'authorization_code'],

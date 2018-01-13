@@ -19,13 +19,32 @@
 
     <p>You are: {{user.login}}</p>
 
-    <div class="center">
-      <p>Authorize app "{{app_name}}" ?</p>
+    <div class="center box">
 
-      <form method="post" target="">
-        <button class="button button-ok" type="submit" name="user_allows" value="true">Yes</button>
-        <button class="button button-ko" type="submit" name="user_allows" value="false">No</button>
-      </form>
+      <div class="box-head">
+        <h3>Authorize app <b>{{app_name}}</b> ?</h3>
+      </div>
+
+      <div class="box-body">
+
+        <span><strong>{{app_name}}</strong> wants to access to the following scopes:</span>
+        <p>
+          <ul>
+            {{#scope}}
+              <li>{{.}}</li>
+            {{/scope}}
+          </ul>
+        </p>
+
+        <br>
+
+        <div class="center">
+          <form method="post" target="">
+            <button class="button button-success" type="submit" name="user_allows" value="true">Yes</button>
+            <button class="button button-danger" type="submit" name="user_allows" value="false">No</button>
+          </form>
+        </div>
+      </div>
     </div>
 
   </div>

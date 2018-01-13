@@ -52,7 +52,7 @@ const credentials = {
   authorizationUri: `http://${AUTH_SERVER}/oauth/authorize`,
   redirectUri: `http://${THIS_SERVER}/auth/test/callback`,
   userInfoUri: `http://${AUTH_SERVER}/me`,
-  scopes: ['user']
+  scopes: ['user', 'profile']
 };
 
 function parseCredentials(c) {
@@ -100,7 +100,8 @@ app.use('/', express.static(__dirname + '/static'));
 app.get('/auth/test', (req, res) => {
   const authorizationUri = testAuth.authorizationCode.authorizeURL({
     redirect_uri: credentials.redirectUri,
-    scope: credentials.scopes.join(','),
+    // https://tools.ietf.org/html/rfc6749#section-3.3
+    scope: credentials.scopes.join(' '),
     state: crypto.randomBytes(4).toString('hex')
   });
   console.log('client:', {authorizationUri});

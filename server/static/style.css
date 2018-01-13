@@ -29,7 +29,7 @@ blockquote *:last-child {
   margin-bottom: 0;
 }
 
-.button,
+.button, .tag,
 button,
 input[type='button'],
 input[type='reset'],
@@ -52,7 +52,7 @@ input[type='submit'] {
   white-space: nowrap;
 }
 
-.button:focus, .button:hover,
+.button:focus, .tag:focus, .button:hover, .tag:hover,
 button:focus,
 button:hover,
 input[type='button']:focus,
@@ -67,7 +67,7 @@ input[type='submit']:hover {
   outline: 0;
 }
 
-.button[disabled],
+.button[disabled], .tag[disabled],
 button[disabled],
 input[type='button'][disabled],
 input[type='reset'][disabled],
@@ -76,7 +76,7 @@ input[type='submit'][disabled] {
   opacity: .5;
 }
 
-.button[disabled]:focus, .button[disabled]:hover,
+.button[disabled]:focus, .tag[disabled]:focus, .button[disabled]:hover, .tag[disabled]:hover,
 button[disabled]:focus,
 button[disabled]:hover,
 input[type='button'][disabled]:focus,
@@ -89,7 +89,7 @@ input[type='submit'][disabled]:hover {
   border-color: #607D8B;
 }
 
-.button.button-outline,
+.button.button-outline, .button-outline.tag,
 button.button-outline,
 input[type='button'].button-outline,
 input[type='reset'].button-outline,
@@ -98,7 +98,7 @@ input[type='submit'].button-outline {
   color: #607D8B;
 }
 
-.button.button-outline:focus, .button.button-outline:hover,
+.button.button-outline:focus, .button-outline.tag:focus, .button.button-outline:hover, .button-outline.tag:hover,
 button.button-outline:focus,
 button.button-outline:hover,
 input[type='button'].button-outline:focus,
@@ -112,7 +112,7 @@ input[type='submit'].button-outline:hover {
   color: #37474F;
 }
 
-.button.button-outline[disabled]:focus, .button.button-outline[disabled]:hover,
+.button.button-outline[disabled]:focus, .button-outline.tag[disabled]:focus, .button.button-outline[disabled]:hover, .button-outline.tag[disabled]:hover,
 button.button-outline[disabled]:focus,
 button.button-outline[disabled]:hover,
 input[type='button'].button-outline[disabled]:focus,
@@ -125,7 +125,7 @@ input[type='submit'].button-outline[disabled]:hover {
   color: #607D8B;
 }
 
-.button.button-clear,
+.button.button-clear, .button-clear.tag,
 button.button-clear,
 input[type='button'].button-clear,
 input[type='reset'].button-clear,
@@ -135,7 +135,7 @@ input[type='submit'].button-clear {
   color: #607D8B;
 }
 
-.button.button-clear:focus, .button.button-clear:hover,
+.button.button-clear:focus, .button-clear.tag:focus, .button.button-clear:hover, .button-clear.tag:hover,
 button.button-clear:focus,
 button.button-clear:hover,
 input[type='button'].button-clear:focus,
@@ -149,7 +149,7 @@ input[type='submit'].button-clear:hover {
   color: #37474F;
 }
 
-.button.button-clear[disabled]:focus, .button.button-clear[disabled]:hover,
+.button.button-clear[disabled]:focus, .button-clear.tag[disabled]:focus, .button.button-clear[disabled]:hover, .button-clear.tag[disabled]:hover,
 button.button-clear[disabled]:focus,
 button.button-clear[disabled]:hover,
 input[type='button'].button-clear[disabled]:focus,
@@ -467,7 +467,7 @@ ul {
   list-style: circle inside;
 }
 
-.button,
+.button, .tag,
 button,
 dd,
 dt,
@@ -593,28 +593,35 @@ html, body {
   padding: 0;
 }
 
-.button-ok {
+.button-success {
   background-color: #4CAF50;
   border-color: #4CAF50;
 }
 
-.button-ok:focus, .button-ok:hover {
+.button-success:focus, .button-success:hover {
   background-color: #388E3C;
   border-color: #388E3C;
 }
 
-.button-ko {
+.button-danger {
   background-color: #F44336;
   border-color: #F44336;
 }
 
-.button-ko:focus, .button-ko:hover {
+.button-danger:focus, .button-danger:hover {
   background-color: #D32F2F;
   border-color: #D32F2F;
 }
 
-body h1, body h2 {
-  padding: 10px;
+.button-small {
+  font-size: .8rem;
+  height: 1.8rem;
+  line-height: 1.6rem;
+  padding: 0 1.5rem;
+}
+
+body h1, body h2, body h3 {
+  padding: 1rem;
   margin: 0;
 }
 
@@ -634,4 +641,53 @@ body .content {
 .center {
   display: table;
   margin: 0 auto;
+}
+
+.box {
+  background: #fff;
+  border: 1px solid #E0E0E0;
+  border-radius: 3px;
+}
+
+.box .box-body, .box .box-head {
+  padding: 2.4rem 2.4rem 0;
+}
+
+.box .box-body h3, .box .box-head h3 {
+  padding: 0;
+}
+
+.box .box-head {
+  text-align: center;
+}
+
+.box .box-head:after {
+  content: "";
+  display: block;
+  border-bottom: 1px solid #E0E0E0;
+  width: 100%;
+  padding-top: 2rem;
+}
+
+table caption {
+  border-bottom: 0.1rem solid #e1e1e1;
+  padding: 1.2rem 0;
+  text-align: left;
+}
+
+.tag {
+  background-color: #FFE082;
+  border-color: #FFE082;
+  cursor: default;
+  color: #37474F;
+  font-size: .8rem;
+  height: 1.8rem;
+  line-height: 1.6rem;
+  padding: 0 .5rem;
+}
+
+.tag:focus, .tag:hover {
+  background-color: #FFE082;
+  border-color: #FFE082;
+  color: #37474F;
 }

@@ -19,6 +19,29 @@
     {{#user.login}}
       <p>You are: {{user.login}}</p>
 
+      <table>
+        <caption><b>Authorized clients</b></caption>
+        <thead>
+        <tr>
+          <th>Name</th>
+          <th>Scope</th>
+          <th></th>
+        </tr>
+        </thead>
+        {{#clients}}
+          <tr>
+            <td>{{name}}</td>
+            <td>
+              {{#scope}}
+                <span class="tag">{{.}}</span>
+              {{/scope}}
+            </td>
+            <td>
+              <a class="button button-small button-danger" href="/revoke/{{id}}">revoke</a>
+            </td>
+          </tr>
+        {{/clients}}
+      </table>
       <a class="button button-outline" href="/logout">logout from auth server</a>
     {{/user.login}}
     <!-- else -->
