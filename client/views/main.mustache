@@ -3,28 +3,36 @@
 <head>
   <meta charset="UTF-8">
   <title>Title</title>
+  <link rel="icon" type="image/png" href="/favicon.png"/>
+
+  <link rel="stylesheet" href="/style.css" type="text/css" media="screen" charset="utf-8">
   <script type="text/javascript" id="" src="/index.js"></script>
 </head>
 <body>
-<div>
 
-  <h1>OAuth client app</h1>
+<h1>OAuth client app</h1>
 
-  <h2>Main</h2>
+<h2>Main</h2>
 
-  <!-- if logged -->
-  {{#user}}
-    <p>You are: {{user.name}}</p>
+<p id="error"></p>
 
-    <a href="/logout">logout from client app</a>
-  {{/user}}
-  <!-- else -->
-  {{^user}}
-    <a href="/auth/test">login</a>
-  {{/user}}
+<div class="content">
+  <div>
 
-  <a href="//localhost:8090">go to authorization server</a>
+    <!-- if logged -->
+    {{#user}}
+      <p>You are: {{user.name}}</p>
 
+      <a class="button button-outline" href="/logout">logout from client app</a>
+    {{/user}}
+    <!-- else -->
+    {{^user}}
+      <a class="button button-outline" href="/auth/test">login</a>
+    {{/user}}
+
+    <a class="button button-outline" href="//localhost:8090">go to authorization server</a>
+
+  </div>
 </div>
 
 </body>

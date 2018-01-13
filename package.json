@@ -19,6 +19,7 @@
     "cookie-parser": "^1.4.3",
     "express": "^4.16.2",
     "express-oauth-server": "^2.0.0",
+    "milligram": "^1.3.0",
     "mustache-express": "^1.2.5",
     "oauth2-server": "^3.0.0",
     "request-promise-native": "^1.0.5",

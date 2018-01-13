@@ -1,0 +1,62 @@
+$red-a100: #FF8A80
+$red-a200: #FF5252
+$red-300: #E57373
+$red-500: #F44336
+$red-600: #E53935
+$red-700: #D32F2F
+
+$green-300: #81C784
+$green-500: #4CAF50
+$green-700: #388E3C
+
+$blue-grey-500: #607D8B
+$blue-grey-700: #455A64
+$blue-grey-800: #37474F
+
+$color-main-header: $red-a200 !default
+$color-sub-header: $red-a100 !default
+
+$color-primary: $blue-grey-500 !default
+$color-secondary: $blue-grey-800 !default
+
+@import "../../node_modules/milligram/src/milligram"
+
+html, body
+  margin: 0
+  padding: 0
+
+.button-ok
+  background-color: $green-500
+  border-color: $green-500
+  &:focus,
+  &:hover
+    background-color: $green-700
+    border-color: $green-700
+
+.button-ko
+  background-color: $red-500
+  border-color: $red-500
+  &:focus,
+  &:hover
+    background-color: $red-700
+    border-color: $red-700
+
+body
+  h1, h2
+    padding: 10px
+    margin: 0
+
+  h1
+    background-color: $color-main-header
+    margin: 0
+
+  h2
+    background-color: $color-sub-header
+
+  .content
+    margin: 2em 1em
+
+.center
+  display: table
+  margin: 0 auto
+

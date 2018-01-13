@@ -3,25 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <title>Title</title>
+  <link rel="icon" type="image/png" href="/favicon.png"/>
+
+  <link rel="stylesheet" href="/style.css" type="text/css" media="screen" charset="utf-8">
   <script type="text/javascript" id="" src="/authorize.js"></script>
 </head>
 <body>
 
-<h1>OAuth server app</h1>
+<h1>OAuth server</h1>
 
 <h2>Authorize</h2>
 
-<div>
+<div class="content">
+  <div>
 
-  <p>You are: {{user.login}}</p>
+    <p>You are: {{user.login}}</p>
 
-  <p>Authorize app "{{app_name}}" ?</p>
+    <div class="center">
+      <p>Authorize app "{{app_name}}" ?</p>
 
-  <form method="post" target="">
-    <button type="submit" name="user_allows" value="true" >Yes</button>
-    <button type="submit" name="user_allows" value="false" >No</button>
-  </form>
+      <form method="post" target="">
+        <button class="button button-ok" type="submit" name="user_allows" value="true">Yes</button>
+        <button class="button button-ko" type="submit" name="user_allows" value="false">No</button>
+      </form>
+    </div>
 
+  </div>
 </div>
 
 </body>
