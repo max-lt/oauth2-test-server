@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Title</title>
+  <link rel="icon" type="image/png" href="/favicon.png"/>
+
+  <link rel="stylesheet" href="/style.css" type="text/css" media="screen" charset="utf-8">
+</head>
+<body>
+
+<h1>OAuth server</h1>
+
+<h2>Clients <a class="button float-right" href="/">root</a></h2>
+
+<div class="content">
+  <div>
+
+    <div class="box center">
+      <div class="box-head">
+        <h3>Create new app</h3>
+      </div>
+      <div class="box-body">
+        <form method="post" action="/client">
+
+          <label>
+            Name:
+            <input name="name" type="text">
+          </label>
+
+          <label>
+            Redirect URIs: <small>(break line for multiple)</small>
+            <textarea name="callbacks" style="resize: vertical"></textarea>
+          </label>
+
+          <button class="button button-success" type="submit">add</button>
+
+        </form>
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="box-head">
+        <h3>Registered apps</h3>
+      </div>
+      <div class="box-body">
+        <table>
+          <thead>
+          <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Secret</th>
+            <th>redirectUris</th>
+            <th></th>
+          </tr>
+          </thead>
+          {{#clients}}
+            <tr>
+              <td>{{id}}</td>
+              <td>{{name}}</td>
+              <td>{{secret}}</td>
+              <td>{{redirectUris}}</td>
+              <td>
+                <a class="button-small button-warn"
+                   href="/client/{{id}}/resetSecret">reset secret</a>
+                <a class="button-small button-danger"
+                   href="/client/{{id}}/delete">delete</a>
+              </td>
+            </tr>
+          {{/clients}}
+        </table>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

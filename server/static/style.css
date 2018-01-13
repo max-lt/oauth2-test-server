@@ -29,7 +29,7 @@ blockquote *:last-child {
   margin-bottom: 0;
 }
 
-.button, .tag,
+.button, .button-small, .tag,
 button,
 input[type='button'],
 input[type='reset'],
@@ -52,7 +52,7 @@ input[type='submit'] {
   white-space: nowrap;
 }
 
-.button:focus, .tag:focus, .button:hover, .tag:hover,
+.button:focus, .button-small:focus, .tag:focus, .button:hover, .button-small:hover, .tag:hover,
 button:focus,
 button:hover,
 input[type='button']:focus,
@@ -67,7 +67,7 @@ input[type='submit']:hover {
   outline: 0;
 }
 
-.button[disabled], .tag[disabled],
+.button[disabled], .button-small[disabled], .tag[disabled],
 button[disabled],
 input[type='button'][disabled],
 input[type='reset'][disabled],
@@ -76,7 +76,7 @@ input[type='submit'][disabled] {
   opacity: .5;
 }
 
-.button[disabled]:focus, .tag[disabled]:focus, .button[disabled]:hover, .tag[disabled]:hover,
+.button[disabled]:focus, .button-small[disabled]:focus, .tag[disabled]:focus, .button[disabled]:hover, .button-small[disabled]:hover, .tag[disabled]:hover,
 button[disabled]:focus,
 button[disabled]:hover,
 input[type='button'][disabled]:focus,
@@ -89,7 +89,7 @@ input[type='submit'][disabled]:hover {
   border-color: #607D8B;
 }
 
-.button.button-outline, .button-outline.tag,
+.button.button-outline, .button-outline.button-small, .button-outline.tag,
 button.button-outline,
 input[type='button'].button-outline,
 input[type='reset'].button-outline,
@@ -98,7 +98,7 @@ input[type='submit'].button-outline {
   color: #607D8B;
 }
 
-.button.button-outline:focus, .button-outline.tag:focus, .button.button-outline:hover, .button-outline.tag:hover,
+.button.button-outline:focus, .button-outline.button-small:focus, .button-outline.tag:focus, .button.button-outline:hover, .button-outline.button-small:hover, .button-outline.tag:hover,
 button.button-outline:focus,
 button.button-outline:hover,
 input[type='button'].button-outline:focus,
@@ -112,7 +112,7 @@ input[type='submit'].button-outline:hover {
   color: #37474F;
 }
 
-.button.button-outline[disabled]:focus, .button-outline.tag[disabled]:focus, .button.button-outline[disabled]:hover, .button-outline.tag[disabled]:hover,
+.button.button-outline[disabled]:focus, .button-outline.button-small[disabled]:focus, .button-outline.tag[disabled]:focus, .button.button-outline[disabled]:hover, .button-outline.button-small[disabled]:hover, .button-outline.tag[disabled]:hover,
 button.button-outline[disabled]:focus,
 button.button-outline[disabled]:hover,
 input[type='button'].button-outline[disabled]:focus,
@@ -125,7 +125,7 @@ input[type='submit'].button-outline[disabled]:hover {
   color: #607D8B;
 }
 
-.button.button-clear, .button-clear.tag,
+.button.button-clear, .button-clear.button-small, .button-clear.tag,
 button.button-clear,
 input[type='button'].button-clear,
 input[type='reset'].button-clear,
@@ -135,7 +135,7 @@ input[type='submit'].button-clear {
   color: #607D8B;
 }
 
-.button.button-clear:focus, .button-clear.tag:focus, .button.button-clear:hover, .button-clear.tag:hover,
+.button.button-clear:focus, .button-clear.button-small:focus, .button-clear.tag:focus, .button.button-clear:hover, .button-clear.button-small:hover, .button-clear.tag:hover,
 button.button-clear:focus,
 button.button-clear:hover,
 input[type='button'].button-clear:focus,
@@ -149,7 +149,7 @@ input[type='submit'].button-clear:hover {
   color: #37474F;
 }
 
-.button.button-clear[disabled]:focus, .button-clear.tag[disabled]:focus, .button.button-clear[disabled]:hover, .button-clear.tag[disabled]:hover,
+.button.button-clear[disabled]:focus, .button-clear.button-small[disabled]:focus, .button-clear.tag[disabled]:focus, .button.button-clear[disabled]:hover, .button-clear.button-small[disabled]:hover, .button-clear.tag[disabled]:hover,
 button.button-clear[disabled]:focus,
 button.button-clear[disabled]:hover,
 input[type='button'].button-clear[disabled]:focus,
@@ -467,7 +467,7 @@ ul {
   list-style: circle inside;
 }
 
-.button, .tag,
+.button, .button-small, .tag,
 button,
 dd,
 dt,
@@ -593,6 +593,10 @@ html, body {
   padding: 0;
 }
 
+.button, .button-small, .tag {
+  margin-bottom: 0;
+}
+
 .button-success {
   background-color: #4CAF50;
   border-color: #4CAF50;
@@ -601,6 +605,16 @@ html, body {
 .button-success:focus, .button-success:hover {
   background-color: #388E3C;
   border-color: #388E3C;
+}
+
+.button-info {
+  background-color: #00BCD4;
+  border-color: #00BCD4;
+}
+
+.button-info:focus, .button-info:hover {
+  background-color: #0097A7;
+  border-color: #0097A7;
 }
 
 .button-danger {
@@ -613,11 +627,12 @@ html, body {
   border-color: #D32F2F;
 }
 
-.button-small {
+.button-small, .tag {
   font-size: .8rem;
   height: 1.8rem;
   line-height: 1.6rem;
   padding: 0 1.5rem;
+  vertical-align: text-top;
 }
 
 body h1, body h2, body h3 {
@@ -640,13 +655,16 @@ body .content {
 
 .center {
   display: table;
-  margin: 0 auto;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .box {
   background: #fff;
   border: 1px solid #E0E0E0;
   border-radius: 3px;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
 }
 
 .box .box-body, .box .box-head {
@@ -680,9 +698,6 @@ table caption {
   border-color: #FFE082;
   cursor: default;
   color: #37474F;
-  font-size: .8rem;
-  height: 1.8rem;
-  line-height: 1.6rem;
   padding: 0 .5rem;
 }
 

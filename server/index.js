@@ -6,6 +6,7 @@ const app = express();
 const store = require('./store');
 const oauth = require('./oauth');
 const login = require('./login');
+const clients = require('./clients');
 
 const authenticate = oauth.authenticate;
 
@@ -23,8 +24,8 @@ app.set('view engine', 'mustache');
 app.set('views', __dirname + '/views');
 
 app.use(login);
-
 app.use(oauth);
+app.use(clients);
 
 app.get('/', (req, res) => {
 
