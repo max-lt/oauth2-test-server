@@ -20,9 +20,6 @@ router.use((req, res, next) => {
   next()
 });
 
-router.get('/logout', (req, res) => res.cookie('test-oauth-client-user', '', {
-  maxAge: -1,
-  httpOnly: true
-}).redirect('/'));
+router.get('/logout', (req, res) => res.clearCookie('test-oauth-client-user').redirect('/'));
 
 module.exports = router;

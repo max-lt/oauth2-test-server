@@ -1,6 +1,9 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+
+require('express-async-errors');
+
 const app = express();
 
 const store = require('./store');
@@ -27,7 +30,7 @@ app.use(login);
 app.use(oauth);
 app.use(clients);
 
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
 
   const user = req.user;
 
@@ -37,7 +40,7 @@ app.get('/', (req, res) => {
   const clients = [];
 
   for (let client of user.authorizedClients) {
-    clients.push(Object.assign({}, store.client.get(client.id), {scope: client.scope.split(' ')}));
+    clients.push(Object.assign({}, await store.client.get(client.id), {scope: client.scope.split(' ')}));
   }
 
   res.render('main', {user, clients})

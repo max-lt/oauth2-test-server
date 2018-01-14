@@ -13,19 +13,16 @@ function AsyncMap() {
   this.has = async (key) => _map.has(key);
   this.set = async (key, val) => (_map.set(key, val), this);
 
-  Object.defineProperty(this, "size", {
-    get: () => _map.size,
-    set: () => undefined,
-  });
+  this.values = async () => _map.values();
 
 }
 
 const store = module.exports = {
-  user: new Map,
-  client: new Map,
-  accessToken: new Map,
-  refreshToken: new Map,
-  authorizationCode: new Map
+  user: new AsyncMap,
+  client: new AsyncMap,
+  accessToken: new AsyncMap,
+  refreshToken: new AsyncMap,
+  authorizationCode: new AsyncMap
 };
 
 store.client.set('abc', {
@@ -36,4 +33,4 @@ store.client.set('abc', {
   grants: ['refresh_token', 'authorization_code'],
   accessTokenLifetime: undefined, // optional
   refreshTokenLifetime: undefined // optional
-});
+}).catch(console.error);

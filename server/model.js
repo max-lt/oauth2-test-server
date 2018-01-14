@@ -181,7 +181,7 @@ const model = module.exports = {
   getAuthorizationCode: async (code) => {
     console.log('server:', `Get authorization code ${code}`);
 
-    const ret = deserialiseAuthorizationCode(authorizationCodeStore.get(code));
+    const ret = deserialiseAuthorizationCode(await authorizationCodeStore.get(code));
 
     console.log('server:', '   ->', JSON.stringify(ret));
 

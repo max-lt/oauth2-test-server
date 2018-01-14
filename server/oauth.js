@@ -1,73 +1,53 @@
 const qs = require('querystring');
 const router = require('express').Router();
+const Layer = require('express/lib/router/layer');
 
 const oauthServer = require('oauth2-server');
 
 const AccessDeniedError = require('oauth2-server/lib/errors/access-denied-error');
 const OAuthError = require('oauth2-server/lib/errors/oauth-error');
-const {Request, Response} = oauthServer;
 
 const AuthorizeHandler = require('oauth2-server/lib/handlers/authorize-handler');
 
-const model = require('./model');
 const store = require('./store');
 
+const wrap = require('./wrap');
+
 const authenticate = function (options) {
-  return function (req, res, next) {
-    let request = new Request(req);
-    let response = new Response(res);
-    return oauth.authenticate(request, response, options)
-      .then((token) => {
+  return async function (req, res, next) {
+    const token = await wrap.authenticate(req, res, options);
 
-        const user = store.user.get(token.user.id);
+    const user = await store.user.get(token.user.id);
 
-        res.oauth = {token, user};
+    res.oauth = {token, user};
 
-        next();
-      })
-      .catch(next);
+    next();
   }
 };
 
-const authenticateHandler = {
-  handle: (request, response) => request.user
-};
+router.all('/oauth/access_token', async (req, res, next) => {
 
-// https://github.com/manjeshpv/node-oauth2-server-implementation/blob/master/components/oauth/models.js
-const oauth = new oauthServer({model});
-const checkClient = AuthorizeHandler.prototype.getClient.bind({model});
+  const token = await wrap.token(req, res);
 
-router.all('/oauth/access_token', (req, res, next) => {
-  const request = new Request(req);
-  const response = new Response(res);
+  console.log('server:', 'token:', {token});
 
-  oauth
-    .token(request, response)
-    .then((token) => {
+  // https://tools.ietf.org/html/rfc6749.html#section-5.1
+  // https://tools.ietf.org/html/rfc6749.html#section-4.1.4
+  return res.json({
+    access_token: token.accessToken,
+    token_type: 'bearer',
+    expires_in: token.accessTokenExpiresAt,
+    refresh_token: token.refreshToken,
+    scope: token.scope
+  })
 
-      console.log('server:', 'token:', {token});
-
-      // https://tools.ietf.org/html/rfc6749.html#section-5.1
-      // https://tools.ietf.org/html/rfc6749.html#section-4.1.4
-      return res.json({
-        access_token: token.accessToken,
-        token_type: 'bearer',
-        expires_in: token.accessTokenExpiresAt,
-        refresh_token: token.refreshToken,
-        scope: token.scope
-      })
-    })
-    .catch((err) => {
-      console.log('server:', 'error:', err);
-      next(err);
-    })
 });
 
 // Get authorization.
-router.get('/oauth/authorize', (req, res, next) => {
+router.get('/oauth/authorize', async (req, res, next) => {
   const {response_type, client_id, redirect_uri, scope, state} = req.query;
 
-  const client = store.client.get(client_id);
+  const client = await store.client.get(client_id);
 
   if (!client)
     return res.status(404).send('Client not found');
@@ -82,18 +62,11 @@ router.get('/oauth/authorize', (req, res, next) => {
 
   // If user already approved client app. todo: check for scopes too
   if (user.authorizedClients.find(({id}) => id === client_id)) {
-    const request = new Request(req);
-    const response = new Response(res);
 
-    return oauth.authorize(request, response, {authenticateHandler, allowEmptyState: true})
-      .then((code) => {
-        console.log('server:', `user:${user.id} already approved client:${client_id}`);
-        res.redirect(`${code.redirectUri}/?code=${code.authorizationCode}`) // todo add state
-      })
-      .catch((err) => {
-        console.log('server:', err);
-        next(err);
-      })
+    const code = await wrap.authorize(req, res);
+
+    console.log('server:', `user:${user.id} already approved client:${client_id}`);
+    return res.redirect(`${code.redirectUri}/?code=${code.authorizationCode}`) // todo add state
   }
 
   const app_name = client.name; // todo
@@ -101,40 +74,37 @@ router.get('/oauth/authorize', (req, res, next) => {
   return res.render('authorize', {user, app_name, client_id, redirect_uri, scope: scope.split(/[ ,]/)});
 });
 
-router.post('/oauth/authorize', (req, res, next) => {
+router.post('/oauth/authorize', async (req, res, next) => {
 
-  if (!req.user)
-    return res.status(403).send('Unauthorized');
+    if (!req.user)
+      return res.status(403).send('Unauthorized');
 
-  // copy post response to the library expected format
-  // https://oauth2-server.readthedocs.io/en/latest/api/oauth2-server.html#authorize-request-response-options-callback
-  req.query.allowed = req.body.user_allows;
+    // copy post response to the library expected format
+    // https://oauth2-server.readthedocs.io/en/latest/api/oauth2-server.html#authorize-request-response-options-callback
+    req.query.allowed = req.body.user_allows;
 
-  const request = new Request(req);
-  const response = new Response(res);
-
-  (async () => {
     // => {"authorizationCode":"...","expiresAt":"...","redirectUri":"...","scope":"...","client":{"id":"..."},"user":{"id":"..."}}
-    const code = await oauth.authorize(request, response, {authenticateHandler, allowEmptyState: true});
+    const code = await wrap.authorize(req, res);
 
     console.info('server:', 'code:', code);
 
     // saving client to user's approved clients
-    const user = store.user.get(code.user.id);
+    const user = await store.user.get(code.user.id);
 
     if (!user)
       throw new Error('Could not find referenced user');
 
     user.authorizedClients.push({id: code.client.id, scope: code.scope});
 
-    store.user.set(code.user.id, user);
+    await store.user.set(code.user.id, user);
     // end
 
     res.redirect(`${code.redirectUri}/?code=${code.authorizationCode}`) // todo add state
 
-  })().catch(async (error) => {
+  }, // Route specific error handler
+  async (error, req, res, next) => {
 
-    console.log('server:', {error});
+    console.log('server: Error (/oauth/authorize)', {error});
 
     if (error instanceof AccessDeniedError) {
 
@@ -146,15 +116,15 @@ router.post('/oauth/authorize', (req, res, next) => {
 
       // We use AuthorizeHandler.prototype.getClient to do that
       // @see /node_modules/oauth2-server/lib/handlers/authorize-handler.js
-      const client = await checkClient(request).catch(next);
+      const client = await wrap.checkClient(req);
 
       return res.redirect(`${redirect_uri}/?${qs.encode({error: error.name, error_description: error.message})}`) // todo add state
     }
 
-    next(error);
-  })
+    throw error;
 
-});
+  }
+);
 
 router.use((error, req, res, next) => {
   if (!(error instanceof OAuthError)) {

@@ -4,27 +4,27 @@ const crypto = require('crypto');
 
 const store = require('./store');
 
-router.get('/clients', (req, res) => {
-  const clients = Array.from(store.client.values());
+router.get('/clients', async (req, res) => {
+  const clients = Array.from(await store.client.values());
   console.log('server:', clients);
   res.render('clients', {clients});
 });
 
-router.get('/client/:id/resetSecret', (req, res) => {
+router.get('/client/:id/resetSecret', async (req, res) => {
   const clientId = req.params.id;
-  const client = store.client.get(clientId);
+  const client = await store.client.get(clientId);
   client.secret = crypto.randomBytes(20).toString('hex');
-  store.client.set(client.id, client);
+  await store.client.set(client.id, client);
   res.redirect('/clients');
 });
 
-router.get('/client/:id/delete', (req, res) => {
+router.get('/client/:id/delete', async (req, res) => {
   const clientId = req.params.id;
-  const client = store.client.delete(clientId);
+  const client = await store.client.delete(clientId);
   res.redirect('/clients');
 });
 
-router.post('/client', (req, res) => {
+router.post('/client', async (req, res) => {
 
   const {name, callbacks} = req.body;
 
@@ -36,7 +36,7 @@ router.post('/client', (req, res) => {
 
   client.grants = ['refresh_token', 'authorization_code'];
 
-  store.client.set(client.id, client);
+  await store.client.set(client.id, client);
 
   res.redirect('/clients');
 
