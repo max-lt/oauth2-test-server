@@ -23,11 +23,14 @@
     {{#user}}
       <p>You are: {{user.name}}</p>
 
+      <pre><code>{{user_pre}}</code></pre>
+
       <a class="button button-outline" href="/logout">logout from client app</a>
     {{/user}}
     <!-- else -->
     {{^user}}
-      <a class="button button-outline" href="/auth/test">login</a>
+      <a class="button button-outline" href="/auth/test?scope=user">login (user)</a>
+      <a class="button button-outline" href="/auth/test?scope=user notifications">login (user + notifications)</a>
     {{/user}}
 
     <a class="button button-outline" href="//localhost:8090">go to authorization server</a>

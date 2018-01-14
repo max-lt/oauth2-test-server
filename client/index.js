@@ -2,6 +2,8 @@ const express = require('express');
 const request = require('request-promise-native');
 const cookieParser = require('cookie-parser');
 
+require('express-async-errors');
+
 const crypto = require('crypto');
 const url = require('url');
 const qs = require('querystring');
@@ -41,8 +43,10 @@ const THIS_SERVER = 'localhost:8080';
 //   accessTokenUri: 'https://github.com/login/oauth/access_token',
 //   authorizationUri: 'https://github.com/login/oauth/authorize',
 //   redirectUri: `http://${THIS_SERVER}/auth/test/callback`,
+//   scope: ['user', 'notifications'],
+
 //   userInfoUri: 'https://api.github.com/user',
-//   scopes: ['notifications', 'gist', 'user:email']
+//   userNotificationsUri: 'https://api.github.com/notifications'
 // };
 
 const credentials = {
@@ -51,8 +55,10 @@ const credentials = {
   accessTokenUri: `http://${AUTH_SERVER}/oauth/access_token`,
   authorizationUri: `http://${AUTH_SERVER}/oauth/authorize`,
   redirectUri: `http://${THIS_SERVER}/auth/test/callback`,
+  scope: ['user', 'notifications'],
+
   userInfoUri: `http://${AUTH_SERVER}/me`,
-  scopes: ['user', 'profile']
+  userNotificationsUri: `http://${AUTH_SERVER}/notifications`
 };
 
 function parseCredentials(c) {
@@ -93,22 +99,57 @@ function getRemoteUserData(token, userInfoUri) {
 
 const handler = () => (req, res, next) => 0;
 
-app.get('/', (req, res) => res.render('main', {user: req.user}));
+app.get('/', async (req, res) => {
+  const user = req.user;
+
+  if (!user)
+    return res.render('main', {});
+
+  const token = user.token.access_token;
+
+  // get user data
+  try {
+    const u = await getRemoteUserData(token, credentials.userInfoUri);
+    console.log({u});
+    Object.assign(user, {name: '' + (u.login || u.name || u.id)});
+  } catch (e) {
+    Object.assign(user, {name: Object.assign({code: e.response.statusCode}, e.response.body)});
+  }
+  // end
+
+  // get user notifications
+  try {
+    const notifications = await getRemoteUserData(token, credentials.userNotificationsUri);
+    Object.assign(user, {notifications});
+  } catch (e) {
+    Object.assign(user, {notifications: Object.assign({code: e.response.statusCode}, e.response.body)});
+  }
+  // end
+
+  // update user
+  users.set(user.id, user);
+
+  res.render('main', {user, user_pre: JSON.stringify(user, null, 2)})
+});
 
 app.use('/', express.static(__dirname + '/static'));
 
 app.get('/auth/test', (req, res) => {
+  const scope = req.query.scope;
+
+  console.log('client:', {scope});
+
   const authorizationUri = testAuth.authorizationCode.authorizeURL({
     redirect_uri: credentials.redirectUri,
     // https://tools.ietf.org/html/rfc6749#section-3.3
-    scope: credentials.scopes.join(' '),
+    scope: scope || credentials.scope.join(' '),
     state: crypto.randomBytes(4).toString('hex')
   });
   console.log('client:', {authorizationUri});
   res.redirect(authorizationUri);
 });
 
-app.get('/auth/test/callback', function (req, res) {
+app.get('/auth/test/callback', async (req, res) => {
   const {code, error} = req.query;
   const options = {code};
 
@@ -126,37 +167,33 @@ app.get('/auth/test/callback', function (req, res) {
 
   console.log('client:', 'tokenConfig', tokenConfig);
 
-  testAuth.authorizationCode.getToken(tokenConfig)
-    .then((result) => {
+  const result = await testAuth.authorizationCode.getToken(tokenConfig);
 
-      const accessToken = testAuth.accessToken.create(result);
+  const accessToken = testAuth.accessToken.create(result);
 
-      if (accessToken.error) {
-        console.warn('client:', 'token error', accessToken);
-        throw accessToken;
-      }
+  if (accessToken.error) {
+    console.warn('client:', 'token error', accessToken);
+    throw accessToken;
+  }
 
-      console.log('client:', 'token:', accessToken);
+  console.log('client:', {accessToken});
 
-      return getRemoteUserData(accessToken.token.access_token, credentials.userInfoUri);
-    })
-    .then((user) => {
-      // we got user data, just create a session
+  // just create a session with token
 
-      const localUser = {name: '' + (user.login || user.name || user.id), id: '' + user.id};
+  const localUser = {id: crypto.randomBytes(8).toString('hex'), token: accessToken.token};
 
-      users.set(localUser.id, localUser);
+  users.set(localUser.id, localUser);
 
-      console.log('client:', 'user:', user);
+  console.log('client:', 'user:', localUser);
 
-      res.cookie('test-oauth-client-user', localUser.id, {maxAge: 900000, httpOnly: true});
-      res.redirect('/');
-    })
-    .catch((error) => {
-      console.trace('client:', 'Access Token Error', error.message);
-      res.send({error})
-    });
+  res.cookie('test-oauth-client-user', localUser.id, {maxAge: 900000, httpOnly: true});
+  res.redirect('/');
 
+});
+
+app.use((error, req, res, next) => {
+  console.error('client: Error:', error);
+  res.status(error.code || 500).send(error)
 });
 
 app.listen(8080);

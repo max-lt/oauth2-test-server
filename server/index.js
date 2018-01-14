@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
+const OAuthError = require('oauth2-server/lib/errors/oauth-error');
 
 require('express-async-errors');
 
@@ -39,7 +40,7 @@ app.get('/', async (req, res) => {
 
   const clients = [];
 
-  for (let client of user.authorizedClients) {
+  for (let client of user.authorizedClients.values()) {
     clients.push(Object.assign({}, await store.client.get(client.id), {scope: client.scope.split(' ')}));
   }
 
@@ -57,7 +58,7 @@ app.get('/public', (req, res) => {
   res.send('Public area');
 });
 
-app.get('/me', authenticate(), (req, res) => {
+app.get('/me', authenticate({scope: 'user'}), (req, res) => {
   res.json(Object.assign({}, res.oauth.user, {
     message: 'Authorization success, Without Scopes, Try accessing /profile with `profile` scope',
     description: 'Try postman https://www.getpostman.com/collections/37afd82600127fbeef28',
@@ -65,10 +66,24 @@ app.get('/me', authenticate(), (req, res) => {
   }))
 });
 
+app.get('/notifications', authenticate({scope: 'notifications'}), (req, res) => {
+  res.json([])
+});
+
 app.get('/profile', authenticate({scope: 'profile'}), (req, res) => {
   res.json({
     profile: res.oauth.user
   })
+});
+
+app.use((error, req, res, next) => {
+  if (!(error instanceof OAuthError)) {
+    res.status(error.code || 500).send({error});
+  }
+
+  const oauthError = {error: error.name, error_description: error.message};
+
+  res.status(error.code || 500).send(oauthError)
 });
 
 app.listen(8090);

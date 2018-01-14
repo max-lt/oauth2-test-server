@@ -41,12 +41,12 @@ router.get('/revoke/:clientId', async (req, res) => {
   if (!user)
     throw new Error('Could not find referenced user');
 
-  const i = user.authorizedClients.findIndex(({id}) => id === clientId);
+  const i = user.authorizedClients.has(clientId);
 
   if (i === -1)
     return res.status(404).send('Client not found');
 
-  user.authorizedClients.splice(i, 1);
+  user.authorizedClients.delete(clientId);
 
   await store.user.set(req.user.id, user);
   // end
@@ -64,7 +64,7 @@ router.post('/login', async (req, res) => {
     return res.status(400).send('Expected login & password');
 
   const userId = crypto.createHash('sha1').update(login).digest('hex'); // deterministic userId
-  const user = {id: userId, login, password, authorizedClients: []};
+  const user = {id: userId, login, password, authorizedClients: new Map};
 
   if (await store.user.has(user.id)) {
     // restore stored used

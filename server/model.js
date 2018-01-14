@@ -1,4 +1,5 @@
 const store = require('./store');
+const misc = require('./misc');
 
 const clientStore = store.client;
 const accessTokenStore = store.accessToken;
@@ -169,13 +170,17 @@ const model = module.exports = {
   // },
 
   saveAuthorizationCode: async (code, client, user) => {
-    console.log('server:', 'Save authorization code', code);
+    console.log('server:', 'Save authorization code', code, client, user);
 
     const s = serialiseAuthorizationCode(code, client, user);
 
     await authorizationCodeStore.set(code.authorizationCode, s);
 
-    return deserialiseAuthorizationCode(s);
+    const ret = deserialiseAuthorizationCode(s);
+
+    console.log('server:', '   ->', JSON.stringify(ret));
+
+    return ret;
   },
 
   getAuthorizationCode: async (code) => {
@@ -192,6 +197,43 @@ const model = module.exports = {
     console.log('server:', 'Revoke authorization code', code);
 
     return authorizationCodeStore.delete(code.authorizationCode);
+  },
+
+  // http://oauth2-server.readthedocs.io/en/latest/model/spec.html#validatescope-user-client-scope-callback
+  // Invoked to check if the requested scope is valid for a particular client/user combination.
+  // This model function is optional. If not implemented, any scope is accepted.
+  validateScope: async (user, client, scope) => {
+    console.log('server:', 'Validate scope', user, client, scope);
+
+    // list of (server's) valid scopes
+    const VALID_SCOPES = ['user', 'notifications', 'profile'];
+
+    if (!misc.allIn(VALID_SCOPES, scope))
+      return false;
+
+    const fullUser = await store.user.get(user.id);
+
+    const authorizedClient = fullUser.authorizedClients.get(client.id);
+
+    const userAcceptedScope = misc.allIn(authorizedClient.scope, scope);
+
+    console.log('server:', '   ->', {userAcceptedScope});
+
+    return userAcceptedScope;
+  },
+
+  // http://oauth2-server.readthedocs.io/en/latest/model/spec.html#verifyscope-accesstoken-scope-callback
+  // Invoked during request authentication to check if the provided access token was authorized the requested scopes.
+  verifyScope: async (accessToken, scope) => {
+    console.log('server:', 'Verify scope', accessToken, scope);
+
+    if (!accessToken.scope)
+      return false;
+
+    let requestedScopes = scope.split(' ');
+    let authorizedScopes = accessToken.scope.split(' ');
+
+    return requestedScopes.every((s) => authorizedScopes.includes(s));
   }
 
 

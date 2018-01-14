@@ -9,9 +9,12 @@ const OAuthError = require('oauth2-server/lib/errors/oauth-error');
 
 const AuthorizeHandler = require('oauth2-server/lib/handlers/authorize-handler');
 
+// todo access store from a model
 const store = require('./store');
+const model = require('./model');
 
 const wrap = require('./wrap');
+const misc = require('./misc');
 
 const authenticate = function (options) {
   return async function (req, res, next) {
@@ -45,7 +48,7 @@ router.all('/oauth/access_token', async (req, res, next) => {
 
 // Get authorization.
 router.get('/oauth/authorize', async (req, res, next) => {
-  const {response_type, client_id, redirect_uri, scope, state} = req.query;
+  const {response_type, client_id, redirect_uri, scope: requestedScope, state} = req.query; // todo: validate scope
 
   const client = await store.client.get(client_id);
 
@@ -60,18 +63,17 @@ router.get('/oauth/authorize', async (req, res, next) => {
 
   const user = req.user;
 
-  // If user already approved client app. todo: check for scopes too
-  if (user.authorizedClients.find(({id}) => id === client_id)) {
-
+  // If user already approved client app AND scope already approved.
+  const authorizedClient = user.authorizedClients.get(client_id);
+  if (authorizedClient && misc.allIn(authorizedClient.scope, requestedScope)) {
     const code = await wrap.authorize(req, res);
-
     console.log('server:', `user:${user.id} already approved client:${client_id}`);
     return res.redirect(`${code.redirectUri}/?code=${code.authorizationCode}`) // todo add state
   }
 
   const app_name = client.name; // todo
 
-  return res.render('authorize', {user, app_name, client_id, redirect_uri, scope: scope.split(/[ ,]/)});
+  return res.render('authorize', {user, app_name, client_id, redirect_uri, scope: requestedScope.split(/[ ,]/)});
 });
 
 router.post('/oauth/authorize', async (req, res, next) => {
@@ -89,14 +91,16 @@ router.post('/oauth/authorize', async (req, res, next) => {
     console.info('server:', 'code:', code);
 
     // saving client to user's approved clients
-    const user = await store.user.get(code.user.id);
+    await misc.updateUser(code.user.id, (user) => {
+      const clients = user.authorizedClients;
+      const client = clients.get(code.client.id);
+      if (!client)
+        clients.set(code.client.id, {id: code.client.id, scope: code.scope});
+      else
+        clients.set(client.id, {id: client.id, scope: misc.dropDuplicates(client.scope + ' ' + code.scope)});
 
-    if (!user)
-      throw new Error('Could not find referenced user');
-
-    user.authorizedClients.push({id: code.client.id, scope: code.scope});
-
-    await store.user.set(code.user.id, user);
+      return user;
+    });
     // end
 
     res.redirect(`${code.redirectUri}/?code=${code.authorizationCode}`) // todo add state
@@ -125,16 +129,6 @@ router.post('/oauth/authorize', async (req, res, next) => {
 
   }
 );
-
-router.use((error, req, res, next) => {
-  if (!(error instanceof OAuthError)) {
-    res.status(error.code || 500).send({error});
-  }
-
-  const oauthError = {error: error.name, error_description: error.message};
-
-  res.status(error.code || 500).send(oauthError)
-});
 
 module.exports = router;
 module.exports.authenticate = authenticate;
