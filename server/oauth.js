@@ -4,8 +4,10 @@ const router = require('express').Router();
 const oauthServer = require('oauth2-server');
 
 const AccessDeniedError = require('oauth2-server/lib/errors/access-denied-error');
-
+const OAuthError = require('oauth2-server/lib/errors/oauth-error');
 const {Request, Response} = oauthServer;
+
+const AuthorizeHandler = require('oauth2-server/lib/handlers/authorize-handler');
 
 const model = require('./model');
 const store = require('./store');
@@ -23,10 +25,7 @@ const authenticate = function (options) {
 
         next();
       })
-      .catch((err) => {
-        // handle error condition
-        res.status(err.code).json(err);
-      });
+      .catch(next);
   }
 };
 
@@ -36,6 +35,7 @@ const authenticateHandler = {
 
 // https://github.com/manjeshpv/node-oauth2-server-implementation/blob/master/components/oauth/models.js
 const oauth = new oauthServer({model});
+const checkClient = AuthorizeHandler.prototype.getClient.bind({model});
 
 router.all('/oauth/access_token', (req, res, next) => {
   const request = new Request(req);
@@ -59,7 +59,7 @@ router.all('/oauth/access_token', (req, res, next) => {
     })
     .catch((err) => {
       console.log('server:', 'error:', err);
-      res.status(500).json(err)
+      next(err);
     })
 });
 
@@ -92,7 +92,7 @@ router.get('/oauth/authorize', (req, res, next) => {
       })
       .catch((err) => {
         console.log('server:', err);
-        res.status(err.code || 500).json(err)
+        next(err);
       })
   }
 
@@ -101,45 +101,69 @@ router.get('/oauth/authorize', (req, res, next) => {
   return res.render('authorize', {user, app_name, client_id, redirect_uri, scope: scope.split(/[ ,]/)});
 });
 
-router.post('/oauth/authorize', (req, res) => {
+router.post('/oauth/authorize', (req, res, next) => {
+
+  if (!req.user)
+    return res.status(403).send('Unauthorized');
 
   // copy post response to the library expected format
   // https://oauth2-server.readthedocs.io/en/latest/api/oauth2-server.html#authorize-request-response-options-callback
   req.query.allowed = req.body.user_allows;
 
-  const {redirect_uri} = req.query;
-
   const request = new Request(req);
   const response = new Response(res);
 
-  return oauth.authorize(request, response, {authenticateHandler, allowEmptyState: true})
-    .then((code) => { // => {"authorizationCode":"...","expiresAt":"...","redirectUri":"...","scope":"...","client":{"id":"..."},"user":{"id":"..."}}
+  (async () => {
+    // => {"authorizationCode":"...","expiresAt":"...","redirectUri":"...","scope":"...","client":{"id":"..."},"user":{"id":"..."}}
+    const code = await oauth.authorize(request, response, {authenticateHandler, allowEmptyState: true});
 
-      console.info('server:', 'code:', code);
+    console.info('server:', 'code:', code);
 
-      // saving client to user's approved clients
-      const user = store.user.get(code.user.id);
+    // saving client to user's approved clients
+    const user = store.user.get(code.user.id);
 
-      if (!user)
-        throw new Error('Could not find referenced user');
+    if (!user)
+      throw new Error('Could not find referenced user');
 
-      user.authorizedClients.push({id: code.client.id, scope: code.scope});
+    user.authorizedClients.push({id: code.client.id, scope: code.scope});
 
-      store.user.set(code.user.id, user);
-      // end
+    store.user.set(code.user.id, user);
+    // end
 
-      res.redirect(`${code.redirectUri}/?code=${code.authorizationCode}`) // todo add state
-    })
-    .catch((err) => {
-      if (err instanceof AccessDeniedError) {
-        return res.redirect(`${redirect_uri}/?error=access_denied`) // todo add state
-      }
+    res.redirect(`${code.redirectUri}/?code=${code.authorizationCode}`) // todo add state
 
-      console.log('server:', err);
+  })().catch(async (error) => {
 
-      res.status(err.code || 500).json(err)
-    })
+    console.log('server:', {error});
 
+    if (error instanceof AccessDeniedError) {
+
+      const {redirect_uri} = req.query;
+
+      // We want to redirect the user to the client but we need to checks that the requested client
+      // exists and that the provided redirect_uri is valid because the library checks the user's rejection
+      // before checking the client validity.
+
+      // We use AuthorizeHandler.prototype.getClient to do that
+      // @see /node_modules/oauth2-server/lib/handlers/authorize-handler.js
+      const client = await checkClient(request).catch(next);
+
+      return res.redirect(`${redirect_uri}/?${qs.encode({error: error.name, error_description: error.message})}`) // todo add state
+    }
+
+    next(error);
+  })
+
+});
+
+router.use((error, req, res, next) => {
+  if (!(error instanceof OAuthError)) {
+    res.status(error.code || 500).send({error});
+  }
+
+  const oauthError = {error: error.name, error_description: error.message};
+
+  res.status(error.code || 500).send(oauthError)
 });
 
 module.exports = router;
