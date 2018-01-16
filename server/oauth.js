@@ -157,9 +157,8 @@ router.post('/oauth/authorize', (req, res, next) => {
 });
 
 router.use((error, req, res, next) => {
-  if (!(error instanceof OAuthError)) {
-    res.status(error.code || 500).send({error});
-  }
+  if (!(error instanceof OAuthError))
+    return res.status(error.code || 500).send({error});
 
   const oauthError = {error: error.name, error_description: error.message};
 
