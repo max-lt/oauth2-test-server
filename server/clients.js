@@ -13,6 +13,10 @@ router.get('/clients', async (req, res) => {
 router.get('/client/:id/resetSecret', async (req, res) => {
   const clientId = req.params.id;
   const client = await store.client.get(clientId);
+  if (!client)
+    return res.status(404).send('Client not found');
+  if (client.protected)
+    return res.status(401).send('Protected');
   client.secret = crypto.randomBytes(20).toString('hex');
   await store.client.set(client.id, client);
   res.redirect('/clients');
@@ -20,7 +24,12 @@ router.get('/client/:id/resetSecret', async (req, res) => {
 
 router.get('/client/:id/delete', async (req, res) => {
   const clientId = req.params.id;
-  const client = await store.client.delete(clientId);
+  const client = await store.client.get(clientId);
+  if (!client)
+    return res.status(404).send('Client not found');
+  if (client.protected)
+    return res.status(401).send('Protected');
+  await store.client.delete(clientId);
   res.redirect('/clients');
 });
 

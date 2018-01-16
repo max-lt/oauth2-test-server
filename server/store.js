@@ -25,12 +25,15 @@ const store = module.exports = {
   authorizationCode: new AsyncMap
 };
 
+const {PROTOCOL, AUTH_SERVER, CLIENT_SERVER} = require('../config');
+
 store.client.set('abc', {
   id: 'abc',
   name: 'test app',
   secret: '123',
-  redirectUris: ['http://localhost:8080/auth/test/callback'], // optional
+  redirectUris: [`${PROTOCOL}//${CLIENT_SERVER}/auth/test/callback`], // optional
   grants: ['refresh_token', 'authorization_code'],
   accessTokenLifetime: undefined, // optional
-  refreshTokenLifetime: undefined // optional
+  refreshTokenLifetime: undefined, // optional
+  protected: true // todo set owner to clients
 }).catch(console.error);

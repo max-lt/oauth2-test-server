@@ -3,6 +3,9 @@ const bodyParser = require('body-parser');
 const cookieParser = require('cookie-parser');
 const OAuthError = require('oauth2-server/lib/errors/oauth-error');
 
+const {CLIENT_SERVER} = require('../config');
+const clientUri = CLIENT_SERVER || 'localhost:8080';
+
 require('express-async-errors');
 
 const app = express();
@@ -36,7 +39,7 @@ app.get('/', async (req, res) => {
   const user = req.user;
 
   if (!user)
-    return res.render('main');
+    return res.render('main', {clientUri});
 
   const clients = [];
 
@@ -44,7 +47,7 @@ app.get('/', async (req, res) => {
     clients.push(Object.assign({}, await store.client.get(client.id), {scope: client.scope.split(' ')}));
   }
 
-  res.render('main', {user, clients})
+  res.render('main', {user, clients, clientUri})
 });
 
 app.use('/', express.static(__dirname + '/static'));
@@ -77,9 +80,8 @@ app.get('/profile', authenticate({scope: 'profile'}), (req, res) => {
 });
 
 app.use((error, req, res, next) => {
-  if (!(error instanceof OAuthError)) {
-    res.status(error.code || 500).send({error});
-  }
+  if (!(error instanceof OAuthError))
+    return res.status(error.code || 500).send({error});
 
   const oauthError = {error: error.name, error_description: error.message};
 

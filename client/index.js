@@ -13,6 +13,8 @@ const clientOAuth2 = require('simple-oauth2');
 const users = require('./store').user;
 const login = require('./login');
 
+const config = require('../config');
+
 // express config
 
 const app = express();
@@ -32,17 +34,16 @@ app.use(login);
 
 // credentials config
 
-const AUTH_SERVER = 'localhost:8090';
-const THIS_SERVER = 'localhost:8080';
+const {PROTOCOL, AUTH_SERVER, CLIENT_SERVER} = config;
 
-// const {GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET} = process.env;
+// const {GITHUB_CLIENT_ID, GITHUB_CLIENT_SECRET} = config;
 //
 // const credentials = {
 //   clientId: GITHUB_CLIENT_ID,
 //   clientSecret: GITHUB_CLIENT_SECRET,
 //   accessTokenUri: 'https://github.com/login/oauth/access_token',
 //   authorizationUri: 'https://github.com/login/oauth/authorize',
-//   redirectUri: `http://${THIS_SERVER}/auth/test/callback`,
+//   redirectUri: `http://${CLIENT_SERVER}/auth/test/callback`,
 //   scope: ['user', 'notifications'],
 
 //   userInfoUri: 'https://api.github.com/user',
@@ -52,13 +53,13 @@ const THIS_SERVER = 'localhost:8080';
 const credentials = {
   clientId: 'abc',
   clientSecret: '123',
-  accessTokenUri: `http://${AUTH_SERVER}/oauth/access_token`,
-  authorizationUri: `http://${AUTH_SERVER}/oauth/authorize`,
-  redirectUri: `http://${THIS_SERVER}/auth/test/callback`,
+  accessTokenUri: `${PROTOCOL}//${AUTH_SERVER}/oauth/access_token`,
+  authorizationUri: `${PROTOCOL}//${AUTH_SERVER}/oauth/authorize`,
+  redirectUri: `${PROTOCOL}//${CLIENT_SERVER}/auth/test/callback`,
   scope: ['user', 'notifications'],
 
-  userInfoUri: `http://${AUTH_SERVER}/me`,
-  userNotificationsUri: `http://${AUTH_SERVER}/notifications`
+  userInfoUri: `${PROTOCOL}//${AUTH_SERVER}/me`,
+  userNotificationsUri: `${PROTOCOL}//${AUTH_SERVER}/notifications`
 };
 
 function parseCredentials(c) {
@@ -92,7 +93,7 @@ function getRemoteUserData(token, userInfoUri) {
     },
     json: true
   }).catch((error) => {
-    console.trace('client:', 'Request err (getRemoteUserData)', error);
+    console.log('client:', 'Request err (getRemoteUserData)', error.message);
     throw error;
   });
 }
@@ -103,7 +104,7 @@ app.get('/', async (req, res) => {
   const user = req.user;
 
   if (!user)
-    return res.render('main', {});
+    return res.render('main', {serverUri: AUTH_SERVER});
 
   const token = user.token.access_token;
 
@@ -111,25 +112,25 @@ app.get('/', async (req, res) => {
   try {
     const u = await getRemoteUserData(token, credentials.userInfoUri);
     console.log({u});
-    Object.assign(user, {name: '' + (u.login || u.name || u.id)});
+    Object.assign({}, user, {name: '' + (u.login || u.name || u.id)});
   } catch (e) {
-    Object.assign(user, {name: Object.assign({code: e.response.statusCode}, e.response.body)});
+    Object.assign({}, user, {name: Object.assign({code: e.response.statusCode}, e.response.body)});
   }
   // end
 
   // get user notifications
   try {
     const notifications = await getRemoteUserData(token, credentials.userNotificationsUri);
-    Object.assign(user, {notifications});
+    Object.assign({}, user, {notifications});
   } catch (e) {
-    Object.assign(user, {notifications: Object.assign({code: e.response.statusCode}, e.response.body)});
+    Object.assign({}, user, {notifications: Object.assign({code: e.response.statusCode}, e.response.body)});
   }
   // end
 
   // update user
   users.set(user.id, user);
 
-  res.render('main', {user, user_pre: JSON.stringify(user, null, 2)})
+  res.render('main', {user, user_pre: JSON.stringify(user, null, 2), serverUri: AUTH_SERVER});
 });
 
 app.use('/', express.static(__dirname + '/static'));

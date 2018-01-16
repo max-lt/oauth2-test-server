@@ -7,7 +7,9 @@ This projects implements:
 
 ## Installation
 
-    $ git clone https://github.com/maxx-t/oauth2-test-server
+```bash
+git clone https://github.com/maxx-t/oauth2-test-server
+```
 
 ## Quick Start
 
@@ -16,7 +18,7 @@ This projects implements:
 node client
 ```
 
-The client will listen on port 8080.
+Client will listen on port 8080 and server on port 8090.
 
 ###### Note that the client can perform a request to github (commented code), if you want to test this you have to set `GITHUB_CLIENT_ID` and `GITHUB_CLIENT_SECRET` environment variables.
 
@@ -25,5 +27,17 @@ The client will listen on port 8080.
 node server
 ```
 
-The server will listen on port 8090.
+## Run with docker
+
+#### Build:
+```bash
+docker-build.sh
+```
+
+###### Note that this script has default environment variables that you will have to edit in order to run it.
+#### Start:
+```bash
+docker-start.sh
+```
+
 

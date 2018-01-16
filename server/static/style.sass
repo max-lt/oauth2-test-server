@@ -35,9 +35,6 @@ html, body
   margin: 0
   padding: 0
 
-.button
-  margin-bottom: 0
-
 .button-success
   background-color: $green-500
   border-color: $green-500
@@ -64,6 +61,7 @@ html, body
 
 .button-small
   @extend .button
+  margin-bottom: 0
   font-size: .8rem
   height: 1.8rem
   line-height: 1.6rem
@@ -127,3 +125,7 @@ table
     background-color: $amber-200
     border-color: $amber-200
     color: $color-secondary
+  &.black
+    color: #fff
+    border-color: $color-secondary
+    background-color: $color-secondary

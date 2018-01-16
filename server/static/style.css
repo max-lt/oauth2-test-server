@@ -593,10 +593,6 @@ html, body {
   padding: 0;
 }
 
-.button, .button-small, .tag {
-  margin-bottom: 0;
-}
-
 .button-success {
   background-color: #4CAF50;
   border-color: #4CAF50;
@@ -628,6 +624,7 @@ html, body {
 }
 
 .button-small, .tag {
+  margin-bottom: 0;
   font-size: .8rem;
   height: 1.8rem;
   line-height: 1.6rem;
@@ -705,4 +702,10 @@ table caption {
   background-color: #FFE082;
   border-color: #FFE082;
   color: #37474F;
+}
+
+.tag.black {
+  color: #fff;
+  border-color: #37474F;
+  background-color: #37474F;
 }

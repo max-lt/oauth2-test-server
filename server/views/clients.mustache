@@ -29,7 +29,8 @@
           </label>
 
           <label>
-            Redirect URIs: <small>(break line for multiple)</small>
+            Redirect URIs:
+            <small>(break line for multiple)</small>
             <textarea name="callbacks" style="resize: vertical"></textarea>
           </label>
 
@@ -61,10 +62,19 @@
               <td>{{secret}}</td>
               <td>{{redirectUris}}</td>
               <td>
-                <a class="button-small button-warn"
-                   href="/client/{{id}}/resetSecret">reset secret</a>
-                <a class="button-small button-danger"
-                   href="/client/{{id}}/delete">delete</a>
+
+                <!-- if protected -->
+                {{#protected}}
+                  <span class="tag black">protected</span>
+                {{/protected}}
+                <!-- else -->
+                {{^protected}}
+                  <a class="button-small button-warn"
+                     href="/client/{{id}}/resetSecret">reset secret</a>
+                  <a class="button-small button-danger"
+                     href="/client/{{id}}/delete">delete</a>
+                {{/protected}}
+
               </td>
             </tr>
           {{/clients}}
