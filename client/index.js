@@ -108,29 +108,31 @@ app.get('/', async (req, res) => {
 
   const token = user.token.access_token;
 
+  const scope = {};
+
   // get user data
   try {
     const u = await getRemoteUserData(token, credentials.userInfoUri);
     console.log({u});
-    Object.assign({}, user, {name: '' + (u.login || u.name || u.id)});
+    Object.assign(scope, {user: '' + (u.login || u.name || u.id)});
   } catch (e) {
-    Object.assign({}, user, {name: Object.assign({code: e.response.statusCode}, e.response.body)});
+    Object.assign(scope, {user: Object.assign({code: e.response.statusCode}, e.response.body)});
   }
   // end
 
   // get user notifications
   try {
     const notifications = await getRemoteUserData(token, credentials.userNotificationsUri);
-    Object.assign({}, user, {notifications});
+    Object.assign(scope, {notifications});
   } catch (e) {
-    Object.assign({}, user, {notifications: Object.assign({code: e.response.statusCode}, e.response.body)});
+    Object.assign(scope, {notifications: Object.assign({code: e.response.statusCode}, e.response.body)});
   }
   // end
 
   // update user
   users.set(user.id, user);
 
-  res.render('main', {user, user_pre: JSON.stringify(user, null, 2), serverUri: AUTH_SERVER});
+  res.render('main', {user: user, user_pre: JSON.stringify({scope, user}, null, 2), serverUri: AUTH_SERVER});
 });
 
 app.use('/', express.static(__dirname + '/static'));

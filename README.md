@@ -37,7 +37,7 @@ docker-build.sh
 ###### Note that this script has default environment variables that you will have to edit in order to run it.
 #### Start:
 ```bash
-docker-start.sh
+docker-start.sh --local
 ```
 
 

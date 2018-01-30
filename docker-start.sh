@@ -5,7 +5,12 @@ CLIENT_PORT=8080
 SERVER_PORT=8090
 CLIENT_SERVER=localhost:8080
 AUTH_SERVER=localhost:8090
-IMAGE=${DOCKER_REGISTRY}/oauth2-test-server:latest
+
+if [ "$1" == "--local" ]; then
+    IMAGE=oauth2-test-server:latest
+else
+    IMAGE=${DOCKER_REGISTRY}/oauth2-test-server:latest
+fi
 
 docker run -p ${CLIENT_PORT}:8080 -p ${SERVER_PORT}:8090 \
     --env GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID} \
